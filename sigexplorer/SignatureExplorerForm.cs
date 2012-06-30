@@ -118,9 +118,11 @@ namespace sigexplorer
                 var specificSig = (from s in sig.Signatures[sigSize].SignatureList where s.Offset == offset select s).First<BlockSignature>();
 
                 var md5String = ByteArrayToString(specificSig.MD5Signature);
-               
+
+                var rollingSig = string.Format("{0}:{1}", specificSig.RollingSignature.sig1, specificSig.RollingSignature.sig2);
+
                 var msg = string.Format("Offset: {0}\nSize: {1}\nRollingSig: {2}\nMD5: {3}", specificSig.Offset.ToString(),
-                                        specificSig.Size.ToString(), specificSig.RollingSignature.ToString(), md5String);
+                                        specificSig.Size.ToString(), rollingSig, md5String);
 
                 var dialog = MessageBox.Show(msg);
             }
@@ -261,8 +263,9 @@ namespace sigexplorer
                 }
 
                 var md5String = ByteArrayToString(s.MD5Signature);
+                var rollingSig = string.Format("{0}:{1}", s.RollingSignature.sig1, s.RollingSignature.sig2);
                 var msg = string.Format("Offset: {0}\nSize: {1}\nRollingSig: {2}\nMD5: {3}", s.Offset.ToString(),
-                                        s.Size.ToString(), s.RollingSignature.ToString(), md5String);
+                                        s.Size.ToString(),rollingSig , md5String);
 
 
                 smallNode.ToolTipText = msg;
@@ -317,10 +320,10 @@ namespace sigexplorer
                 PopulateSignatureTreeByOffset( sigTreeView2, sig2, sig1);
             }
 
-            file1TotalSize.Text = file1Size.ToString();
-            file2TotalSize.Text = file2Size.ToString();
-            sharedSize.Text = bothFilesShared.ToString();
-            newSize.Text = (file2Size - bothFilesShared).ToString();
+            file1TotalSize.Text = file1Size.ToString("N0");
+            file2TotalSize.Text = file2Size.ToString("N0");
+            sharedSize.Text = bothFilesShared.ToString("N0");
+            newSize.Text = (file2Size - bothFilesShared).ToString("N0");
             sigTreeView.Update();
             sigTreeView2.Update();
         }
