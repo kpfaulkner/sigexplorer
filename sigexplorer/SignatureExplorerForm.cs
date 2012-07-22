@@ -26,9 +26,9 @@ namespace sigexplorer
         string sig1Filename;
         string sig2Filename;
 
-        uint file1Size;
-        uint file2Size;
-        uint bothFilesShared;
+        long file1Size;
+        long file2Size;
+        long bothFilesShared;
 
         public SignatureExplorerForm()
         {
@@ -129,10 +129,10 @@ namespace sigexplorer
         }
 
         
-        private List< Tuple<byte[], uint>> GenerateMD5ListFromSig(SizeBasedCompleteSignature? sig)
+        private List< Tuple<byte[], long>> GenerateMD5ListFromSig(SizeBasedCompleteSignature? sig)
         {
             
-            var md5List = new List< Tuple<byte[], uint>>();
+            var md5List = new List< Tuple<byte[], long>>();
 
             if (sig.HasValue && sig.Value.Signatures != null)
             {
@@ -140,7 +140,7 @@ namespace sigexplorer
                 {
                     foreach (var sSig in sig.Value.Signatures[size].SignatureList)
                     {
-                        var tuple = new Tuple<byte[], uint>(sSig.MD5Signature, sSig.Offset);
+                        var tuple = new Tuple<byte[], long>(sSig.MD5Signature, sSig.Offset);
                         md5List.Add(tuple);
                     }
                 }
@@ -210,14 +210,14 @@ namespace sigexplorer
         }
 
 
-        private void PopulateSignatureTreeFromList(TreeView treeView, List<BlockSignature> sortedSigList, List<Tuple<byte[], uint>> otherSigMD5List)
+        private void PopulateSignatureTreeFromList(TreeView treeView, List<BlockSignature> sortedSigList, List<Tuple<byte[], long>> otherSigMD5List)
         {
             treeView.Nodes.Clear();
             uint lastSize = 0;
             TreeNode currentNode = null;
 
             var md5Dict = GenerateMD5Dict(otherSigMD5List);
-            int size = 0;
+            long size = 0;
             foreach (var s in sortedSigList)
             {
                 // if new size, then add new root node.
@@ -288,9 +288,9 @@ namespace sigexplorer
             return sb.ToString();
         }
 
-        private Dictionary<string, uint> GenerateMD5Dict(List<Tuple<byte[], uint>> otherSigMD5List)
+        private Dictionary<string, long> GenerateMD5Dict(List<Tuple<byte[], long>> otherSigMD5List)
         {
-            var res = new Dictionary<string, uint>();
+            var res = new Dictionary<string, long>();
             var sb = new StringBuilder();
             foreach (var i in otherSigMD5List)
             {
