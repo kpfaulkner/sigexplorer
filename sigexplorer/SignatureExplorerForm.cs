@@ -6,9 +6,9 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using AzureRsyncClient.MiscUtils;
-using AzureRsyncClient.Common;
 using System.IO;
+using BlobSync.Datatypes;
+using BlobSync.Helpers;
 
 namespace sigexplorer
 {
@@ -119,7 +119,7 @@ namespace sigexplorer
 
                 var md5String = ByteArrayToString(specificSig.MD5Signature);
 
-                var rollingSig = string.Format("{0}:{1}", specificSig.RollingSignature.sig1, specificSig.RollingSignature.sig2);
+                var rollingSig = string.Format("{0}:{1}", specificSig.RollingSig.Sig1, specificSig.RollingSig.Sig2);
 
                 var msg = string.Format("Offset: {0}\nSize: {1}\nRollingSig: {2}\nMD5: {3}", specificSig.Offset.ToString(),
                                         specificSig.Size.ToString(), rollingSig, md5String);
@@ -263,7 +263,7 @@ namespace sigexplorer
                 }
 
                 var md5String = ByteArrayToString(s.MD5Signature);
-                var rollingSig = string.Format("{0}:{1}", s.RollingSignature.sig1, s.RollingSignature.sig2);
+                var rollingSig = string.Format("{0}:{1}", s.RollingSig.Sig1, s.RollingSig.Sig2);
                 var msg = string.Format("Offset: {0}\nSize: {1}\nRollingSig: {2}\nMD5: {3}", s.Offset.ToString(),
                                         s.Size.ToString(),rollingSig , md5String);
 
