@@ -166,3 +166,24 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+*.dll
+*.nupkg
+packages/WindowsAzure.Storage.3.0.3.0/lib/net40/Microsoft.WindowsAzure.Storage.xml
+packages/BlobSync.0.2.1/content/Readme.txt
+packages/Microsoft.Data.Edm.5.6.0/lib/net40/Microsoft.Data.Edm.xml
+packages/Microsoft.Data.Edm.5.6.0/lib/portable-net40+sl5+wp8+win8/Microsoft.Data.Edm.Portable.xml
+packages/Microsoft.Data.Edm.5.6.0/lib/sl4/Microsoft.Data.Edm.SL.xml
+packages/Microsoft.Data.OData.5.6.0/lib/net40/Microsoft.Data.OData.xml
+packages/Microsoft.Data.OData.5.6.0/lib/portable-net40+sl5+wp8+win8/Microsoft.Data.OData.Portable.xml
+packages/Microsoft.Data.OData.5.6.0/lib/sl4/Microsoft.Data.OData.SL.xml
+packages/Microsoft.Data.Services.Client.5.6.0/lib/net40/Microsoft.Data.Services.Client.xml
+packages/Microsoft.Data.Services.Client.5.6.0/lib/portable-net45+sl5+wp8+win8/Microsoft.Data.Services.Client.Portable.xml
+packages/Microsoft.Data.Services.Client.5.6.0/lib/sl4/Microsoft.Data.Services.Client.SL.xml
+packages/Newtonsoft.Json.5.0.6/lib/net20/Newtonsoft.Json.xml
+packages/Newtonsoft.Json.5.0.6/lib/net35/Newtonsoft.Json.xml
+packages/Newtonsoft.Json.5.0.6/lib/net40/Newtonsoft.Json.xml
+packages/Newtonsoft.Json.5.0.6/lib/net45/Newtonsoft.Json.xml
+packages/Newtonsoft.Json.5.0.6/lib/netcore45/Newtonsoft.Json.xml
+packages/Newtonsoft.Json.5.0.6/lib/portable-net40+sl4+wp7+win8/Newtonsoft.Json.xml
+*.xml
+packages/repositories.config
