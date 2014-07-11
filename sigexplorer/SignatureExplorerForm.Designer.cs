@@ -29,22 +29,18 @@
         private void InitializeComponent()
         {
             this.sigTreeView = new System.Windows.Forms.TreeView();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.OffsetSortButton = new System.Windows.Forms.RadioButton();
-            this.SizeSortButton = new System.Windows.Forms.RadioButton();
             this.sigTreeView2 = new System.Windows.Forms.TreeView();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.newSize = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.sharedSize = new System.Windows.Forms.Label();
             this.file2TotalSize = new System.Windows.Forms.Label();
             this.file1TotalSize = new System.Windows.Forms.Label();
             this.file2Label = new System.Windows.Forms.Label();
             this.file1Label = new System.Windows.Forms.Label();
-            this.sharedSize = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.newSize = new System.Windows.Forms.Label();
-            this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -56,43 +52,10 @@
             this.sigTreeView.TabIndex = 1;
             this.sigTreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.sigTreeView_AfterSelect);
             // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.OffsetSortButton);
-            this.groupBox1.Controls.Add(this.SizeSortButton);
-            this.groupBox1.Location = new System.Drawing.Point(7, 12);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(175, 60);
-            this.groupBox1.TabIndex = 3;
-            this.groupBox1.TabStop = false;
-            // 
-            // OffsetSortButton
-            // 
-            this.OffsetSortButton.AutoSize = true;
-            this.OffsetSortButton.Location = new System.Drawing.Point(7, 34);
-            this.OffsetSortButton.Name = "OffsetSortButton";
-            this.OffsetSortButton.Size = new System.Drawing.Size(75, 17);
-            this.OffsetSortButton.TabIndex = 1;
-            this.OffsetSortButton.Text = "Offset Sort";
-            this.OffsetSortButton.UseVisualStyleBackColor = true;
-            this.OffsetSortButton.CheckedChanged += new System.EventHandler(this.OffsetSortButton_CheckedChanged);
-            // 
-            // SizeSortButton
-            // 
-            this.SizeSortButton.AutoSize = true;
-            this.SizeSortButton.Checked = true;
-            this.SizeSortButton.Location = new System.Drawing.Point(7, 10);
-            this.SizeSortButton.Name = "SizeSortButton";
-            this.SizeSortButton.Size = new System.Drawing.Size(67, 17);
-            this.SizeSortButton.TabIndex = 0;
-            this.SizeSortButton.TabStop = true;
-            this.SizeSortButton.Text = "Size Sort";
-            this.SizeSortButton.UseVisualStyleBackColor = true;
-            this.SizeSortButton.CheckedChanged += new System.EventHandler(this.SizeSortButton_CheckedChanged);
-            // 
             // sigTreeView2
             // 
             this.sigTreeView2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.sigTreeView2.Enabled = false;
             this.sigTreeView2.Location = new System.Drawing.Point(298, 102);
             this.sigTreeView2.Name = "sigTreeView2";
             this.sigTreeView2.Size = new System.Drawing.Size(293, 474);
@@ -118,12 +81,65 @@
             this.groupBox2.Controls.Add(this.file1Label);
             this.groupBox2.Controls.Add(this.sigTreeView2);
             this.groupBox2.Controls.Add(this.sigTreeView);
-            this.groupBox2.Location = new System.Drawing.Point(15, 83);
+            this.groupBox2.Location = new System.Drawing.Point(15, 12);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(605, 595);
             this.groupBox2.TabIndex = 5;
             this.groupBox2.TabStop = false;
             this.groupBox2.Enter += new System.EventHandler(this.groupBox2_Enter);
+            // 
+            // newSize
+            // 
+            this.newSize.AutoSize = true;
+            this.newSize.Location = new System.Drawing.Point(453, 66);
+            this.newSize.Name = "newSize";
+            this.newSize.Size = new System.Drawing.Size(0, 13);
+            this.newSize.TabIndex = 14;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(405, 66);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(29, 13);
+            this.label4.TabIndex = 13;
+            this.label4.Text = "New";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(144, 66);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(41, 13);
+            this.label3.TabIndex = 12;
+            this.label3.Text = "Shared";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(295, 66);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(27, 13);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "Size";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(14, 66);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(27, 13);
+            this.label1.TabIndex = 10;
+            this.label1.Text = "Size";
+            this.label1.Click += new System.EventHandler(this.label1_Click);
+            // 
+            // sharedSize
+            // 
+            this.sharedSize.AutoSize = true;
+            this.sharedSize.Location = new System.Drawing.Point(186, 67);
+            this.sharedSize.Name = "sharedSize";
+            this.sharedSize.Size = new System.Drawing.Size(0, 13);
+            this.sharedSize.TabIndex = 9;
             // 
             // file2TotalSize
             // 
@@ -159,71 +175,15 @@
             this.file1Label.TabIndex = 5;
             this.file1Label.Click += new System.EventHandler(this.file1Label_Click);
             // 
-            // sharedSize
-            // 
-            this.sharedSize.AutoSize = true;
-            this.sharedSize.Location = new System.Drawing.Point(186, 67);
-            this.sharedSize.Name = "sharedSize";
-            this.sharedSize.Size = new System.Drawing.Size(0, 13);
-            this.sharedSize.TabIndex = 9;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(14, 66);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(27, 13);
-            this.label1.TabIndex = 10;
-            this.label1.Text = "Size";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(295, 66);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(27, 13);
-            this.label2.TabIndex = 11;
-            this.label2.Text = "Size";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(144, 66);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(41, 13);
-            this.label3.TabIndex = 12;
-            this.label3.Text = "Shared";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(405, 66);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(29, 13);
-            this.label4.TabIndex = 13;
-            this.label4.Text = "New";
-            // 
-            // newSize
-            // 
-            this.newSize.AutoSize = true;
-            this.newSize.Location = new System.Drawing.Point(453, 66);
-            this.newSize.Name = "newSize";
-            this.newSize.Size = new System.Drawing.Size(0, 13);
-            this.newSize.TabIndex = 14;
-            // 
             // SignatureExplorerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(632, 780);
+            this.ClientSize = new System.Drawing.Size(632, 693);
             this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.groupBox1);
             this.Name = "SignatureExplorerForm";
             this.Text = "Signature Explorer";
             this.Load += new System.EventHandler(this.Form1_Load);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
@@ -234,9 +194,6 @@
         #endregion
 
         private System.Windows.Forms.TreeView sigTreeView;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.RadioButton SizeSortButton;
-        private System.Windows.Forms.RadioButton OffsetSortButton;
         private System.Windows.Forms.TreeView sigTreeView2;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label file1Label;

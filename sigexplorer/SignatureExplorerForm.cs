@@ -17,9 +17,17 @@ namespace sigexplorer
     /// </summary>
     public partial class SignatureExplorerForm : Form
     {
-
         SizeBasedCompleteSignature sig1;
         SizeBasedCompleteSignature sig2;
+
+        // used for expanding the tree branches.
+        Dictionary<TreeNode, List<BlockSignature>> sig1Dict = new Dictionary<TreeNode, List<BlockSignature>>();
+        Dictionary<TreeNode, List<BlockSignature>> sig2Dict = new Dictionary<TreeNode, List<BlockSignature>>();
+
+        // md5 dicts for signatures
+        Dictionary<string, long> sig1MD5Dict = null;
+        Dictionary<string, long> sig2MD5Dict = null;
+    
 
         int sig1Total;
         int sig2Total;
@@ -38,13 +46,41 @@ namespace sigexplorer
             sigTreeView.ShowNodeToolTips = true;
             sigTreeView2.ShowNodeToolTips = true;
             this.AllowDrop = true;
+
+            sigTreeView.NodeMouseClick += sigTreeView2NodeMouseClick;
+            
             sigTreeView.DoubleClick += new EventHandler(SigTreeViewClick);
             sigTreeView.DragDrop += new DragEventHandler(SignatureExplorerFormDragDrop);
             sigTreeView.DragEnter += new DragEventHandler(SignatureExplorerFormDragEnter);
-            
+
+            sigTreeView2.NodeMouseClick += sigTreeView2NodeMouseClick;
             sigTreeView2.DoubleClick += new EventHandler(SigTreeViewClick2);
             sigTreeView2.DragDrop += new DragEventHandler(SignatureExplorerFormDragDrop2);
             sigTreeView2.DragEnter += new DragEventHandler(SignatureExplorerFormDragEnter);
+        }
+
+        // Expand the node that is clicked...
+        void sigTreeView2NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            // expand branch.
+            var branchNode = e.Node;
+            var sigTV = e.Node.TreeView;
+            
+            // if already populated, then skip it.
+            if (branchNode.Nodes.Count > 1  || branchNode.Nodes[0].Text != "")
+            {
+                return;
+            }
+            
+            if (sigTV.Name == "sigTreeView")
+            {
+                PopulateBranch(sigTV, branchNode, sig1Dict);
+            }
+            else
+            {
+                PopulateBranch(sigTV, branchNode, sig2Dict);
+            }
+            
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -63,7 +99,10 @@ namespace sigexplorer
             if (filePaths.Length > 0)
             {
                 file1Label.Text = filePaths[0];
-                LoadSigFile(filePaths[0], ref sig1);
+                LoadSigFile(filePaths[0], ref sig1, sig1Dict, sigTreeView);
+
+                // enable second treeview.
+                sigTreeView2.Enabled = true;
             }
 
         }
@@ -76,9 +115,39 @@ namespace sigexplorer
             if (filePaths.Length > 0)
             {
                 file2Label.Text = filePaths[0];
-                LoadSigFile(filePaths[0], ref sig2);
+                LoadSigFile(filePaths[0], ref sig2, sig2Dict, sigTreeView2);
+
+                // loaded both sigs... now can calculate total shared etc.
+                CalculateSharedSize();
+               
             }
 
+        }
+
+        private void CalculateSharedSize()
+        {
+            // loop through sigs of NEW file...  and check for matches in old file.
+            // calculate total shared and new.
+
+            long totalShared = 0;
+            foreach (var sigKey in sig2.Signatures.Keys)
+            {
+                foreach( var s in sig2.Signatures[sigKey].SignatureList)
+                {
+                    var md5Str = ByteArrayToString(s.MD5Signature);
+
+                    if (sig1MD5Dict.ContainsKey( md5Str))
+                    {
+                        totalShared += s.Size;
+                    }
+                }
+            }
+
+            bothFilesShared = totalShared;
+            
+            sharedSize.Text = bothFilesShared.ToString("N0");
+            newSize.Text = (file2Size - bothFilesShared).ToString("N0");
+            
         }
 
         private void SignatureExplorerFormDragEnter(object sender, DragEventArgs e)
@@ -113,7 +182,7 @@ namespace sigexplorer
             {
                 var sp = selectedNode.Parent.Text.Split();
                 var sigSize = Convert.ToInt32(sp[0]);
-                var offset = Convert.ToUInt32(selectedNode.Text.Split()[0]);
+                var offset = Convert.ToInt64(selectedNode.Text.Split()[0]);
 
                 var specificSig = (from s in sig.Signatures[sigSize].SignatureList where s.Offset == offset select s).First<BlockSignature>();
 
@@ -128,7 +197,14 @@ namespace sigexplorer
             }
         }
 
-        
+
+        private Dictionary<string, long> GenerateMD5DictFromSig(SizeBasedCompleteSignature? sig)
+        {
+            var list = GenerateMD5ListFromSig(sig);
+            var dict = GenerateMD5Dict(list);
+            return dict;
+        }
+
         private List< Tuple<byte[], long>> GenerateMD5ListFromSig(SizeBasedCompleteSignature? sig)
         {
             
@@ -148,30 +224,8 @@ namespace sigexplorer
             return md5List;
         }
 
-        private void PopulateSignatureTreeBySize(TreeView treeView, SizeBasedCompleteSignature sig, SizeBasedCompleteSignature? otherSig)
-        {
 
-            var sigList = new List<BlockSignature>();
-            if (sig.Signatures != null)
-            {
-                foreach (var size in sig.Signatures.Keys)
-                {
-                    foreach (var sSig in sig.Signatures[size].SignatureList)
-                    {
-                        sigList.Add(sSig);
-                    }
-                }
-
-                var sortedSigList = (from s in sigList orderby s.Size select s).ToList<BlockSignature>();
-
-                sortedSigList = sortedSigList.Reverse<BlockSignature>().ToList<BlockSignature>();
-
-                var otherSigMD5List = GenerateMD5ListFromSig(otherSig);
-                PopulateSignatureTreeFromList(treeView, sortedSigList, otherSigMD5List);
-            }
-        }
-
-        private void PopulateSignatureTreeByOffset(TreeView treeView, SizeBasedCompleteSignature sig, SizeBasedCompleteSignature? otherSig)
+        private void PopulateSignatureTreeByOffset(TreeView sigTV, SizeBasedCompleteSignature sig, Dictionary<TreeNode, List<BlockSignature>> sigDict)
         {
             var sigList = new List<BlockSignature>();
 
@@ -187,9 +241,8 @@ namespace sigexplorer
 
                 var sortedSigList = (from s in sigList orderby s.Offset select s).ToList<BlockSignature>();
 
-                var otherSigMD5List = GenerateMD5ListFromSig(otherSig);
+                PopulateRootNodes(sigTV, sortedSigList, sigDict);
 
-                PopulateSignatureTreeFromList(treeView, sortedSigList, otherSigMD5List);
             }
 
         }
@@ -210,71 +263,142 @@ namespace sigexplorer
         }
 
 
-        private void PopulateSignatureTreeFromList(TreeView treeView, List<BlockSignature> sortedSigList, List<Tuple<byte[], long>> otherSigMD5List)
+        private void PopulateRootNodes(TreeView sigTV, List<BlockSignature> sortedSigList, Dictionary<TreeNode, List<BlockSignature>> sigDict)
         {
-            treeView.Nodes.Clear();
+            sigTV.Nodes.Clear();
             uint lastSize = 0;
             TreeNode currentNode = null;
 
-            var md5Dict = GenerateMD5Dict(otherSigMD5List);
             long size = 0;
+            var branchSigList = new List<BlockSignature>();
+
             foreach (var s in sortedSigList)
             {
                 // if new size, then add new root node.
                 if (s.Size != lastSize)
                 {
-
-                    if (currentNode != null)
-                    {
-                        currentNode.Text = string.Format("{0} ({1})", lastSize, currentNode.Nodes.Count);
-                    }
-
-                    currentNode = treeView.Nodes.Add(s.Size.ToString());
+                    // text replaced later.
+                    currentNode = sigTV.Nodes.Add(s.Size.ToString());
                     lastSize = s.Size;
+
+                    branchSigList = new List<BlockSignature>();
+                    sigDict[currentNode] = branchSigList;
+
+                    // add fake blank node... so + symbol appears on treeview
+                    var smallNode = currentNode.Nodes.Add("");
                 }
 
-                TreeNode smallNode;
-                if (otherSigMD5List != null && otherSigMD5List.Count > 0)
-                {
-                    file2Size += s.Size;
-                   
-                    var md5Str = ByteArrayToString(s.MD5Signature);
-                    if (md5Dict.ContainsKey(md5Str))
-                    {
-                        smallNode = currentNode.Nodes.Add(s.Offset.ToString() + " : " + md5Dict[md5Str].ToString() );
-                        bothFilesShared += s.Size;
+                branchSigList.Add(s);
+            }
 
-                        smallNode.ForeColor = Color.Green;
-                        //smallNode.Text = "foo";
-                        // smallNode.Text + " : " + "foo";
-                        //md5Dict[md5Str].ToString();
-                    }
-                    else
-                    {
-                        smallNode = currentNode.Nodes.Add(s.Offset.ToString());
-                    }
+            // populate text of root nodes based on contents of sigDict;
+            foreach( var node in sigDict.Keys)
+            {
+                node.Text = string.Format("{0} ({1})", sigDict[node].First().Size, sigDict[node].Count);
+            }
+
+        }
+
+
+        private void PopulateBranch(TreeView sigTV, TreeNode branchNode,  Dictionary<TreeNode, List<BlockSignature>> sigDict)
+        {
+
+            var sigListForBranch = sigDict[branchNode];
+
+            var isLeftTree = (sigTV.Name == "sigTreeView");
+
+            TreeNode smallNode = null;
+
+            // remove fake first node.
+            branchNode.Nodes.RemoveAt(0);
+
+            foreach( var sig in sigListForBranch)
+            {
+                var md5Str = ByteArrayToString(sig.MD5Signature);
+
+                if (!isLeftTree && sig1MD5Dict.ContainsKey( md5Str))
+                {
+                    smallNode = branchNode.Nodes.Add(sig.Offset.ToString() + " : " + sig1MD5Dict[md5Str].ToString());
+                    smallNode.ForeColor = Color.Green;
+
                 }
                 else
                 {
-                    // othersig == null means this is first tree. So just add to file1Size
-                    file1Size += s.Size;
-
-                    smallNode = currentNode.Nodes.Add(s.Offset.ToString());
+                    smallNode = branchNode.Nodes.Add(sig.Offset.ToString());
                 }
 
-                var md5String = ByteArrayToString(s.MD5Signature);
-                var rollingSig = string.Format("{0}:{1}", s.RollingSig.Sig1, s.RollingSig.Sig2);
-                var msg = string.Format("Offset: {0}\nSize: {1}\nRollingSig: {2}\nMD5: {3}", s.Offset.ToString(),
-                                        s.Size.ToString(),rollingSig , md5String);
 
+                var md5String = ByteArrayToString(sig.MD5Signature);
+                var rollingSig = string.Format("{0}:{1}", sig.RollingSig.Sig1, sig.RollingSig.Sig2);
+                var msg = string.Format("Offset: {0}\nSize: {1}\nRollingSig: {2}\nMD5: {3}", sig.Offset.ToString(),
+                                        sig.Size.ToString(), rollingSig, md5String);
 
                 smallNode.ToolTipText = msg;
+
+            }
+
+        }
+
+
+        //private void PopulateSignatureTreeFromList(TreeView treeView, List<BlockSignature> sortedSigList, Dictionary<TreeNode, List<BlockSignature>> sigDict)
+        //{
+        //    treeView.Nodes.Clear();
+        //    uint lastSize = 0;
+        //    TreeNode currentNode = null;
+
+        //    var md5Dict = GenerateMD5Dict(otherSigMD5List);
+        //    long size = 0;
+        //    foreach (var s in sortedSigList)
+        //    {
+        //        // if new size, then add new root node.
+        //        if (s.Size != lastSize)
+        //        {
+        //            if (currentNode != null)
+        //            {
+        //                currentNode.Text = string.Format("{0} ({1})", lastSize, currentNode.Nodes.Count);
+        //            }
+
+        //            currentNode = treeView.Nodes.Add(s.Size.ToString());
+        //            lastSize = s.Size;
+        //        }
+
+        //        TreeNode smallNode;
+        //        if (otherSigMD5List != null && otherSigMD5List.Count > 0)
+        //        {
+        //            file2Size += s.Size;
+                   
+        //            var md5Str = ByteArrayToString(s.MD5Signature);
+        //            if (md5Dict.ContainsKey(md5Str))
+        //            {
+        //                smallNode = currentNode.Nodes.Add(s.Offset.ToString() + " : " + md5Dict[md5Str].ToString() );
+        //                bothFilesShared += s.Size;
+
+        //                smallNode.ForeColor = Color.Green;
+        //            }
+        //            else
+        //            {
+        //                smallNode = currentNode.Nodes.Add(s.Offset.ToString());
+        //            }
+        //        }
+        //        else
+        //        {
+        //            // othersig == null means this is first tree. So just add to file1Size
+        //            file1Size += s.Size;
+        //            smallNode = currentNode.Nodes.Add(s.Offset.ToString());
+        //        }
+
+        //        var md5String = ByteArrayToString(s.MD5Signature);
+        //        var rollingSig = string.Format("{0}:{1}", s.RollingSig.Sig1, s.RollingSig.Sig2);
+        //        var msg = string.Format("Offset: {0}\nSize: {1}\nRollingSig: {2}\nMD5: {3}", s.Offset.ToString(),
+        //                                s.Size.ToString(),rollingSig , md5String);
+
+        //        smallNode.ToolTipText = msg;
                
                 
-            }
-            currentNode.Text = string.Format("{0} ({1})", lastSize, currentNode.Nodes.Count);
+        //    }
+        //    currentNode.Text = string.Format("{0} ({1})", lastSize, currentNode.Nodes.Count);
             
-        }
+        //}
 
         private string ByteArrayToString(byte[] byteArray)
         {
@@ -300,26 +424,43 @@ namespace sigexplorer
             return res;
         }
 
-        private void PopulateSignatureTree( bool performOffsetSort = false )
+        private void PopulateSignatureTree(SizeBasedCompleteSignature sig, Dictionary<TreeNode, List<BlockSignature>> sigDict, TreeView sigTV)
         {
-            sigTreeView.Nodes.Clear();
-            sigTreeView2.Nodes.Clear();
+            sigTV.Nodes.Clear();
 
-            file1Size = 0;
-            file2Size = 0;
-            bothFilesShared = 0;
-
-            if (!performOffsetSort)
+            bool isLeftTree;
+            if (sigTV.Name == "sigTreeView")
             {
-                PopulateSignatureTreeBySize( sigTreeView, sig1, null);
-                PopulateSignatureTreeBySize( sigTreeView2, sig2, sig1);
+                isLeftTree = true;
             }
             else
             {
-                PopulateSignatureTreeByOffset(sigTreeView, sig1, null);
-                PopulateSignatureTreeByOffset( sigTreeView2, sig2, sig1);
+                isLeftTree = false;
             }
 
+            bothFilesShared = 0;
+
+            PopulateSignatureTreeByOffset(sigTV, sig, sigDict);
+            sharedSize.Text = bothFilesShared.ToString("N0");
+            newSize.Text = (file2Size - bothFilesShared).ToString("N0");
+           
+            if (isLeftTree)
+            {
+                file1TotalSize.Text = file1Size.ToString("N0");
+                sigTV.Update();
+            }
+            else
+            {
+                file2TotalSize.Text = file2Size.ToString("N0");
+                sigTV.Update();      
+            }
+        }
+
+        private void PopulateBothSignatureTrees(bool performOffsetSort = false)
+        {
+            sigTreeView.Nodes.Clear();
+            sigTreeView2.Nodes.Clear();
+ 
             file1TotalSize.Text = file1Size.ToString("N0");
             file2TotalSize.Text = file2Size.ToString("N0");
             sharedSize.Text = bothFilesShared.ToString("N0");
@@ -367,20 +508,42 @@ namespace sigexplorer
         /// Loads the sig file.
         /// </summary>
         /// <param name="filename"></param>
-        private void LoadSigFile(string filename, ref SizeBasedCompleteSignature sig)
+        private void LoadSigFile(string filename, ref SizeBasedCompleteSignature sig, Dictionary<TreeNode, List<BlockSignature>> sigDict, TreeView sigTV)
         {
             using (var fs = new FileStream(filename, FileMode.Open))
             {
                 sig = SerializationHelper.ReadSizeBasedBinarySignature( fs );
 
                 VerifySignature(sig);
+
+                if (sigTV.Name == "sigTreeView")
+                {
+                    sig1MD5Dict = GenerateMD5DictFromSig(sig);
+
+                    file1Size = CalculateFileSize(sig);
+                    
+                }
+                else
+                {
+                    sig2MD5Dict = GenerateMD5DictFromSig(sig);
+                    file2Size = CalculateFileSize(sig);
+
+                }
             }
 
-            file1Size = 0;
-            file2Size = 0;
             bothFilesShared = 0;
-            PopulateSignatureTree();
+            PopulateSignatureTree(sig, sigDict, sigTV);  
+        }
 
+        private long CalculateFileSize(SizeBasedCompleteSignature sig)
+        {
+            long fileSize = 0;
+            foreach( var sigSize in sig.Signatures.Keys)
+            {
+                fileSize += sigSize * sig.Signatures[sigSize].SignatureList.Count();
+            }
+
+            return fileSize;
         }
 
         /// <summary>
@@ -402,16 +565,6 @@ namespace sigexplorer
         private void sigTreeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
 
-        }
-
-        private void OffsetSortButton_CheckedChanged(object sender, EventArgs e)
-        {
-            PopulateSignatureTree(true);
-        }
-
-        private void SizeSortButton_CheckedChanged(object sender, EventArgs e)
-        {
-            PopulateSignatureTree(false);
         }
 
         private void sigTreeView2_AfterSelect(object sender, TreeViewEventArgs e)
