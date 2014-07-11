@@ -540,7 +540,7 @@ namespace sigexplorer
             long fileSize = 0;
             foreach( var sigSize in sig.Signatures.Keys)
             {
-                fileSize += sigSize * sig.Signatures[sigSize].SignatureList.Count();
+                fileSize += (long) sigSize * (long) sig.Signatures[sigSize].SignatureList.Count();
             }
 
             return fileSize;
