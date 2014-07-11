@@ -1,0 +1,4 @@
+TODO:
+
++ On upload/update any blocks that are used multiple times (eg, blank blocks of VHD etc) only need to be uploaded once.
++ Ditto for download.
